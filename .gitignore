@@ -1,0 +1,21 @@
+# Local agent backups, notes, and temporary artifacts
+/agent/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Editor and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Disposable files
+*.log
+*.tmp
+~$*
