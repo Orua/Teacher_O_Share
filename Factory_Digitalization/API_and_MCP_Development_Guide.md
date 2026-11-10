@@ -1,13 +1,10 @@
 # 通用 API 与 MCP 开发流程指南
-# A Practical Guide to API and MCP Development
 
-> **中文**：面向希望让 AI Agent 使用业务系统的开发者，适用于不同语言、框架、部署方式及已有系统改造。本文是可按项目规模裁剪的实践流程，不代表任何具体系统的开发或验收记录。
->
-> **English**: For developers enabling AI agents to use business systems, across languages, frameworks, deployment models, and existing-system integrations. This is a practical workflow that can be scaled to the project. It is not an implementation or acceptance record for any particular system.
+## 中文
 
-## 1. 明确目标与交付路径 / Define the Goal and Delivery Workflow
+本文面向希望让 AI 助手使用业务能力的团队，方法适用于不同语言、框架、平台和部署方式。示例均为通用场景，不描述任何企业的内部实现。完整中文在前，完整英文在后。
 
-### 中文
+## 1. 明确目标与交付路径
 
 目标是让 Agent 在授权范围内正确查询和操作业务系统，并能解释结果、追踪操作。
 
@@ -25,27 +22,7 @@
 
 身份与权限应从接口设计阶段同步考虑和实现，不能等到业务开发结束才补上。
 
-### English
-
-The goal is to let agents query and operate business systems within their authorized scope, explain results, and leave a traceable record of operations.
-
-```text
-Define scenarios and authorization boundaries
-→ Map UI capabilities and business workflows
-→ Trace source code, data relationships, and related processing
-→ Define API contracts
-→ Implement or reuse business services
-→ Expose MCP tools
-→ Complete identity and permission integration
-→ Run targeted tests
-→ Deploy as authorized, verify, and deliver usage instructions
-```
-
-Design and implement identity and permissions alongside the API contract, rather than adding them after business development is complete.
-
-## 2. 从 UI 追到业务逻辑 / Trace the UI to the Business Logic
-
-### 中文
+## 2. 从 UI 追到业务逻辑
 
 从实际任务开始，例如“查某客户未完成订单”“解释本月销售额”“修改一张单据”。围绕任务检查相关页面，无需一开始遍历整个系统。
 
@@ -68,32 +45,7 @@ UI 是业务发现入口。应继续沿页面事件、请求处理、业务服�
 
 没有 UI 的新功能，通过需求访谈、业务规则和样例建立同类映射。
 
-### English
-
-Start with real tasks, such as finding a customer's outstanding orders, explaining monthly sales, or updating a business document. Inspect the relevant pages without surveying the entire system first.
-
-| Area | Questions to resolve |
-|---|---|
-| Search and details | What can be queried? How do filters combine? What is the default date range? |
-| Fields and names | Which values are business references versus database IDs? What are the quantity and currency units? |
-| Create and update | What is required, defaulted, calculated automatically, or immutable? |
-| Deletion and status | Is the action deletion, voiding, or a status transition? When is it allowed? |
-| Related processing | What records, inventory, statuses, notifications, or logs change after saving? |
-| Permissions | Who may view or edit? Do organization, tenant, or ownership restrictions apply? |
-
-The UI is a starting point. Follow page events, request handlers, business services, data access, and external integrations. Use existing source code, APIs, and tests where available; not every step requires clicking through the interface.
-
-Pay particular attention to what happens after saving. An order update may validate fields, recalculate amounts, reserve inventory, synchronize related documents, and record an audit event. Updating the order table alone does not reproduce the complete business operation.
-
-| User action | Entry point | Business processing | Related effects | Permission | API operation |
-|---|---|---|---|---|---|
-| Update order | Save on edit page | Validate and update order | Recalculate amounts, synchronize statuses, record audit | May edit the target order | `order.update` |
-
-For new capabilities without a UI, build the same mapping from stakeholder discussions, business rules, and examples.
-
-## 3. API 与 MCP 的分工 / Separate API and MCP Responsibilities
-
-### 中文
+## 3. API 与 MCP 的分工
 
 API 提供业务能力；MCP 让 Agent 发现并调用这些能力。两者应尽量复用业务服务及权限规则。
 
@@ -108,24 +60,7 @@ MCP 可以调用已有 API，也可以在同一进程内调用业务服务。不
 
 复杂业务规则放在共用业务服务中；分页适配、参数转换和响应包装可以保留在各入口。
 
-### English
-
-APIs expose business capabilities. MCP makes those capabilities discoverable and callable by agents. Both should reuse business services and permission rules wherever practical.
-
-```text
-Web / Mobile / Other applications → API adapter ─┐
-                                                ├→ Business services → Database / External services
-AI agent → MCP tool adapter ─────────────────────┘
-            Consistent identity and permission rules across entry points
-```
-
-MCP may call an existing API or invoke business services within the same process. An additional HTTP request or a separate microservice is not mandatory. Choose an implementation that fits the existing architecture and remains maintainable.
-
-Keep complex business rules in shared services. Pagination adaptation, parameter conversion, and response formatting may remain in the adapters.
-
-## 4. 先定义契约 / Define Contracts Before Coding
-
-### 中文
+## 4. 先定义契约
 
 每个操作至少说明：
 
@@ -142,26 +77,7 @@ Keep complex business rules in shared services. Pagination adaptation, parameter
 
 HTTP API 可以使用 OpenAPI 描述契约，参考文末官方规范。
 
-### English
-
-Document at least the following for each operation:
-
-- **Purpose**: the problem it solves and when to use it.
-- **Inputs**: types, required conditions, defaults, enums, date/time zones, and units.
-- **Query behavior**: filter combinations, sorting, pagination, empty results, and total-count definitions.
-- **Outputs**: field meanings and necessary related IDs, references, and names.
-- **Permissions**: allowed actions, accessible records, and sensitive-field visibility.
-- **Side effects**: changes made, transaction boundaries, and external calls.
-- **Errors**: distinguish no data, access denied, invalid input, status conflicts, and unavailable capabilities.
-- **Retries**: whether retries are safe and how duplicate writes are prevented.
-
-Operations may be grouped into lists, details, summaries, creation, updates, and status changes. Do not automatically generate every CRUD operation for every table. Business actions such as approve, cancel, or receive stock often preserve rules more effectively than unrestricted field updates.
-
-HTTP APIs can use OpenAPI to describe their contracts. See the official reference at the end.
-
-## 5. 设计 Agent 能正确使用的工具 / Design Tools Agents Can Use Correctly
-
-### 中文
+## 5. 设计 Agent 能正确使用的工具
 
 工具说明应回答“何时用、怎么用、会产生什么结果”。
 
@@ -174,72 +90,15 @@ HTTP APIs can use OpenAPI to describe their contracts. See the official referenc
 
 结果保持结构化，包含必要的编号、名称、单位及状态，并区分空结果、失败、无权限和模块不可用。写入工具应明确副作用；需要确认时，确认必须对应本次具体动作和参数。界面提示、模型承诺或工具描述不能代替服务端权限检查。
 
-### English
+## 6. 每人独立身份与凭据
 
-Tool descriptions should explain when to use a tool, how to call it, and what it will do.
+各入口应采用一致的身份与权限规则。用户或自动化任务使用可识别、可撤销的独立凭据，不共用高权限身份。
 
-- For a small capability set, expose specific tools such as `search_orders`, `get_order`, and `update_order`.
-- For larger systems, organize tools by business domain, or use a small set of entry points with an operation catalog and on-demand help.
+认证方式依据系统边界、客户端能力及适用协议选择。身份来自可信认证结果；业务参数中的用户编号不能覆盖操作者身份。地址中的标识也不能单独作为认证依据。
 
-A generic entry point with dynamic help is an application design choice, not a universal MCP requirement. Specific tools need clear schemas. Generic tools still need reliable operation discovery and parameter validation.
+凭据按需要设置有效期、权限范围和调用限制，并支持轮换。真实凭据不得进入文档、日志、浏览历史或分享链接。跨服务调用采用被目标服务认可的身份或委托机制。
 
-Explain business semantics: whether customer names use substring matching, whether dates mean creation dates or delivery dates, and whether canceled orders are included.
-
-Return structured results with the necessary references, names, units, and statuses. Distinguish empty results, failures, denied access, and unavailable modules. Write tools must describe their side effects. When confirmation is required, bind it to the specific action and parameters. UI prompts, model promises, and tool descriptions do not replace server-side authorization.
-
-## 6. 每人独立身份与凭据 / Give Each User an Independent Identity and Credential
-
-### 中文
-
-统一鉴权意味着各入口采用一致的身份解析和权限规则，不意味着所有人共用管理员凭据。用户通常可以共用同一个服务地址，由各自凭据确定身份。
-
-```text
-用户甲 → 共用 MCP 地址 + 甲的凭据 → 甲的身份与权限
-用户乙 → 共用 MCP 地址 + 乙的凭据 → 乙的身份与权限
-```
-
-在受控环境、客户端支持时，可采用自定义的 `UserID + 个人 Key` 方案：
-
-```text
-MCP 地址：https://service.example/mcp?userid=<用户ID>
-请求头：Authorization: Bearer <个人Key>
-```
-
-这只是占位示例。服务端必须验证 Key 与 UserID 的绑定；修改 UserID 不得获得他人权限。也可直接由 Key 识别用户，省去地址里的 UserID。Key 应放在认证头中，避免进入查询字符串、日志、浏览历史和分享链接。
-
-自定义方案不等同于 MCP 标准授权流程，也不保证所有客户端支持。面向通用远程 HTTP MCP 客户端时，应按选定协议版本及客户端能力实现授权；标准 OAuth 接入需要验证令牌确实面向当前服务签发。
-
-凭据应支持生成、撤销和轮换，按需要设置有效期、权限范围与调用限制。若只需验证 Key，可保存不可逆校验值，并仅在生成时展示原始 Key。
-
-不同客户端可分别发放凭据，便于单独撤销；自动化程序使用独立服务身份。文档、代码示例、审计记录和对话中不得保存真实 Key、令牌或 Cookie。
-
-### English
-
-Consistent authentication means using the same identity-resolution and permission rules across entry points. It does not mean sharing an administrator credential. Users can usually share one service URL while their individual credentials determine their identities.
-
-```text
-User A → Shared MCP URL + A's credential → A's identity and permissions
-User B → Shared MCP URL + B's credential → B's identity and permissions
-```
-
-In a controlled environment with compatible clients, a custom `UserID + personal key` scheme may be used:
-
-```text
-MCP URL: https://service.example/mcp?userid=<user-id>
-Header: Authorization: Bearer <personal-key>
-```
-
-These are placeholders only. The server must verify that the key belongs to the supplied UserID. Changing the UserID must not grant another user's permissions. Alternatively, identify users directly from their keys and omit the UserID from the URL. Put keys in authentication headers to avoid exposing them through query strings, logs, browser history, or shared links.
-
-A custom scheme is not equivalent to the standard MCP authorization flow, and client support varies. For general remote HTTP MCP clients, implement authorization for the selected protocol version and client capabilities. Standard OAuth integration must verify that tokens are intended for the current service.
-
-Support credential issuance, revocation, and rotation. Set expiration, scopes, and request limits as needed. If only key verification is required, store a one-way verifier and display the original key only when issued.
-
-Issue separate credentials per client when useful for independent revocation. Give automation its own service identity. Never store real keys, tokens, or cookies in documentation, code examples, audit records, or conversations.
-
-## 7. 每次调用都检查业务权限 / Enforce Business Permissions on Every Call
-
-### 中文
+## 7. 每次调用都检查业务权限
 
 认证回答“你是谁”；授权回答“你能对哪些资料做什么”。
 
@@ -255,25 +114,7 @@ Issue separate credentials per client when useful for independent revocation. Gi
 
 API 与 MCP 共用身份规则，不代表能把收到的令牌直接透传给任意下游服务。跨服务调用应使用下游认可的凭据或正式委托机制；参见文末 MCP 授权参考。
 
-### English
-
-Authentication answers who you are. Authorization determines what you may do to which records.
-
-```text
-Validate credential → Establish trusted server-side identity → Check account status and credential scope
-→ Check operation permission → Check organization, tenant, and record ownership
-→ Enforce sensitive-field and business-state restrictions → Execute → Record the result
-```
-
-Tool visibility may depend on permissions, but hiding tools does not replace authorization during execution. Connecting to MCP does not grant access to every tool.
-
-The acting identity must come from trusted authentication context and must not be overridden by business parameters. An owner ID or target user ID may be a valid business parameter, but it must remain distinct from the caller's identity and be validated for its intended use.
-
-Shared identity rules do not permit forwarding incoming tokens to arbitrary downstream services. Use credentials accepted by the downstream service or a formal delegation mechanism. See the MCP authorization references below.
-
-## 8. 按规模分工并复核 / Divide Work According to Scale and Review Results
-
-### 中文
+## 8. 按规模分工并复核
 
 大任务可按职责并行；小任务由一个 Agent 完成即可。
 
@@ -286,22 +127,7 @@ Shared identity rules do not permit forwarding incoming tokens to arbitrary down
 
 分工时明确目录、模块、读写授权和验收要求，减少同时修改同一文件。业务研究默认只读；生产写入、删除、对外发送和部署按已有明确授权执行，委派不扩大权限。
 
-### English
-
-Large tasks may be divided by responsibility. A single agent is sufficient for small tasks.
-
-| Role | Responsibility | Deliverable |
-|---|---|---|
-| Business analysis | Inspect UI, use cases, data relationships, and related processing | Capability and logic mapping |
-| Implementation | Define contracts, reuse business logic, and write code | API and MCP implementation |
-| Verification | Compare pages, representative records, and permissions | Results and discrepancies |
-| Lead | Consolidate findings, resolve conflicts, and confirm scope | Deliverable version and outstanding items |
-
-Specify directories, modules, read/write authorization, and acceptance criteria. Avoid simultaneous edits to the same files. Business investigation is read-only by default. Production writes, deletions, external messages, and deployment follow existing explicit authorization; delegation does not expand it.
-
-## 9. 三层针对性验证 / Run Targeted Verification at Three Levels
-
-### 中文
+## 9. 三层针对性验证
 
 1. **契约层**：检查参数、必填项、响应结构、错误语义、工具发现与说明。
 2. **业务层**：选择直接相关的真实或受控样例，对照页面、业务规则和数据状态；关注筛选、分页、统计口径及写入联动。
@@ -321,29 +147,7 @@ Specify directories, modules, read/write authorization, and acceptance criteria.
 
 不能把“接口数量齐全”或“返回成功”写成全部业务已验收。
 
-### English
-
-1. **Contract level**: verify parameters, required fields, response structures, error meanings, tool discovery, and documentation.
-2. **Business level**: use directly relevant real or controlled examples and compare them against the UI, business rules, and data state. Focus on filtering, pagination, aggregation definitions, and related write effects.
-3. **Permission level**: check valid and invalid credentials, user binding, insufficient permissions, and access outside the allowed record scope. Test tenant isolation where applicable.
-
-Prefer isolated environments for write tests: record the initial state → execute → read back primary and related records → inspect audit records → clean up as planned. Where network retries occur, verify idempotency or deduplication according to risk. Explain how partial success is handled across systems.
-
-Match verification depth to the change and its risk. An ordinary change can be delivered after one targeted verification pass; a full-system audit is not the default.
-
-| Evidence | Supported conclusion |
-|---|---|
-| Build passes | The implementation can be built |
-| Tools are listed and help is readable | Discovery and help entry points work |
-| API reports success | This call reported success; the business result still needs checking |
-| Business comparison passes | The checked scenarios follow the business rules |
-| Deployment verification passes | The specified capability works in the target environment |
-
-A complete API list or a successful response does not establish acceptance of all business behavior.
-
-## 10. 部署与使用说明 / Deployment and Usage Instructions
-
-### 中文
+## 10. 部署与使用说明
 
 部署前保留必要备份，确认目标环境，保护现有配置及无关修改。按授权部署已验证的候选版本，并完成一次与改动直接相关的线上确认。
 
@@ -351,17 +155,7 @@ A complete API list or a successful response does not establish acceptance of al
 
 文档同时服务人和 Agent：人能理解业务与权限，Agent 能获取准确参数及调用方式。接口、工具 schema 和说明应同步更新。
 
-### English
-
-Before deployment, retain necessary backups, confirm the target environment, and protect existing configuration and unrelated changes. Deploy the verified candidate as authorized and perform one live check directly related to the change.
-
-The handover should state what was completed, how to connect, how to obtain and revoke personal credentials, which tools are available, the verification level, deployment status, and remaining limitations.
-
-Documentation serves both people and agents. People need clear business and permission explanations; agents need accurate parameters and calling instructions. Update APIs, tool schemas, and documentation together.
-
-## 11. 开发 Agent 任务模板 / Development Agent Task Template
-
-### 中文模板
+## 11. 开发 Agent 任务模板
 
 ```text
 目标：
@@ -394,7 +188,187 @@ Documentation serves both people and agents. People need clear business and perm
 变更摘要、使用示例、验证范围、部署状态、限制和文件位置。
 ```
 
-### English Template
+## 12. 常见遗漏
+
+- 只按数据库字段做接口，忽略完整业务流程。
+- 只检查 UI 表面，未追查后台校验及关联动作。
+- API 与 MCP 各写一套规则，逐渐出现行为差异。
+- 把 UserID 当作认证，未验证凭据绑定。
+- 所有人共用管理员 Key，无法隔离权限或追踪操作者。
+- 只限制工具显示，未限制实际调用和资料范围。
+- 测试只看成功响应，未读回业务结果和关联状态。
+- 文档列出能力，却未说明限制和实际验证范围。
+
+交付标准：助手理解能力，以正确身份调用，并获得符合业务规则的结果。
+
+## 参考资料
+
+以下为通用规范入口；实施时核对所选版本与客户端支持情况。
+
+- [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
+- [MCP Authorization — 2026-07-28 reference](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/basic/authorization/index.mdx)
+- [MCP Authorization — 2025-11-25 reference](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2025-11-25/basic/authorization.mdx)
+
+---
+
+# A Practical Guide to API and MCP Development
+
+## English
+
+This guide is for teams enabling AI assistants to use business capabilities. Its methods apply across languages, frameworks, platforms, and deployment models. Examples are generic and do not describe any organization’s internal implementation. The complete Chinese text precedes the complete English text.
+
+## Define the Goal and Delivery Workflow
+
+The goal is to let agents query and operate business systems within their authorized scope, explain results, and leave a traceable record of operations.
+
+```text
+Define scenarios and authorization boundaries
+→ Map UI capabilities and business workflows
+→ Trace source code, data relationships, and related processing
+→ Define API contracts
+→ Implement or reuse business services
+→ Expose MCP tools
+→ Complete identity and permission integration
+→ Run targeted tests
+→ Deploy as authorized, verify, and deliver usage instructions
+```
+
+Design and implement identity and permissions alongside the API contract, rather than adding them after business development is complete.
+
+## Trace the UI to the Business Logic
+
+Start with real tasks, such as finding a customer's outstanding orders, explaining monthly sales, or updating a business document. Inspect the relevant pages without surveying the entire system first.
+
+| Area | Questions to resolve |
+|---|---|
+| Search and details | What can be queried? How do filters combine? What is the default date range? |
+| Fields and names | Which values are business references versus database IDs? What are the quantity and currency units? |
+| Create and update | What is required, defaulted, calculated automatically, or immutable? |
+| Deletion and status | Is the action deletion, voiding, or a status transition? When is it allowed? |
+| Related processing | What records, inventory, statuses, notifications, or logs change after saving? |
+| Permissions | Who may view or edit? Do organization, tenant, or ownership restrictions apply? |
+
+The UI is a starting point. Follow page events, request handlers, business services, data access, and external integrations. Use existing source code, APIs, and tests where available; not every step requires clicking through the interface.
+
+Pay particular attention to what happens after saving. An order update may validate fields, recalculate amounts, reserve inventory, synchronize related documents, and record an audit event. Updating the order table alone does not reproduce the complete business operation.
+
+| User action | Entry point | Business processing | Related effects | Permission | API operation |
+|---|---|---|---|---|---|
+| Update order | Save on edit page | Validate and update order | Recalculate amounts, synchronize statuses, record audit | May edit the target order | `order.update` |
+
+For new capabilities without a UI, build the same mapping from stakeholder discussions, business rules, and examples.
+
+## Separate API and MCP Responsibilities
+
+APIs expose business capabilities. MCP makes those capabilities discoverable and callable by agents. Both should reuse business services and permission rules wherever practical.
+
+```text
+Web / Mobile / Other applications → API adapter ─┐
+                                                ├→ Business services → Database / External services
+AI agent → MCP tool adapter ─────────────────────┘
+            Consistent identity and permission rules across entry points
+```
+
+MCP may call an existing API or invoke business services within the same process. An additional HTTP request or a separate microservice is not mandatory. Choose an implementation that fits the existing architecture and remains maintainable.
+
+Keep complex business rules in shared services. Pagination adaptation, parameter conversion, and response formatting may remain in the adapters.
+
+## Define Contracts Before Coding
+
+Document at least the following for each operation:
+
+- **Purpose**: the problem it solves and when to use it.
+- **Inputs**: types, required conditions, defaults, enums, date/time zones, and units.
+- **Query behavior**: filter combinations, sorting, pagination, empty results, and total-count definitions.
+- **Outputs**: field meanings and necessary related IDs, references, and names.
+- **Permissions**: allowed actions, accessible records, and sensitive-field visibility.
+- **Side effects**: changes made, transaction boundaries, and external calls.
+- **Errors**: distinguish no data, access denied, invalid input, status conflicts, and unavailable capabilities.
+- **Retries**: whether retries are safe and how duplicate writes are prevented.
+
+Operations may be grouped into lists, details, summaries, creation, updates, and status changes. Do not automatically generate every CRUD operation for every table. Business actions such as approve, cancel, or receive stock often preserve rules more effectively than unrestricted field updates.
+
+HTTP APIs can use OpenAPI to describe their contracts. See the official reference at the end.
+
+## Design Tools Agents Can Use Correctly
+
+Tool descriptions should explain when to use a tool, how to call it, and what it will do.
+
+- For a small capability set, expose specific tools such as `search_orders`, `get_order`, and `update_order`.
+- For larger systems, organize tools by business domain, or use a small set of entry points with an operation catalog and on-demand help.
+
+A generic entry point with dynamic help is an application design choice, not a universal MCP requirement. Specific tools need clear schemas. Generic tools still need reliable operation discovery and parameter validation.
+
+Explain business semantics: whether customer names use substring matching, whether dates mean creation dates or delivery dates, and whether canceled orders are included.
+
+Return structured results with the necessary references, names, units, and statuses. Distinguish empty results, failures, denied access, and unavailable modules. Write tools must describe their side effects. When confirmation is required, bind it to the specific action and parameters. UI prompts, model promises, and tool descriptions do not replace server-side authorization.
+
+## Give Each User an Independent Identity and Credential
+
+Use consistent identity and permission rules across entry points. Give users and automated tasks identifiable, revocable credentials instead of a shared privileged identity.
+
+Choose authentication according to system boundaries, client capabilities, and applicable protocols. Establish identity from trusted authentication results. Business user identifiers must not override the acting identity, and identifiers in an address do not establish authentication.
+
+Set expiration, scopes, and usage limits as appropriate and support rotation. Keep real credentials out of documents, logs, browser history, and shared links. Cross-service calls need an identity or delegation accepted by the receiving service.
+
+## Enforce Business Permissions on Every Call
+
+Authentication answers who you are. Authorization determines what you may do to which records.
+
+```text
+Validate credential → Establish trusted server-side identity → Check account status and credential scope
+→ Check operation permission → Check organization, tenant, and record ownership
+→ Enforce sensitive-field and business-state restrictions → Execute → Record the result
+```
+
+Tool visibility may depend on permissions, but hiding tools does not replace authorization during execution. Connecting to MCP does not grant access to every tool.
+
+The acting identity must come from trusted authentication context and must not be overridden by business parameters. An owner ID or target user ID may be a valid business parameter, but it must remain distinct from the caller's identity and be validated for its intended use.
+
+Shared identity rules do not permit forwarding incoming tokens to arbitrary downstream services. Use credentials accepted by the downstream service or a formal delegation mechanism. See the MCP authorization references below.
+
+## Divide Work According to Scale and Review Results
+
+Large tasks may be divided by responsibility. A single agent is sufficient for small tasks.
+
+| Role | Responsibility | Deliverable |
+|---|---|---|
+| Business analysis | Inspect UI, use cases, data relationships, and related processing | Capability and logic mapping |
+| Implementation | Define contracts, reuse business logic, and write code | API and MCP implementation |
+| Verification | Compare pages, representative records, and permissions | Results and discrepancies |
+| Lead | Consolidate findings, resolve conflicts, and confirm scope | Deliverable version and outstanding items |
+
+Specify directories, modules, read/write authorization, and acceptance criteria. Avoid simultaneous edits to the same files. Business investigation is read-only by default. Production writes, deletions, external messages, and deployment follow existing explicit authorization; delegation does not expand it.
+
+## Run Targeted Verification at Three Levels
+
+1. **Contract level**: verify parameters, required fields, response structures, error meanings, tool discovery, and documentation.
+2. **Business level**: use directly relevant real or controlled examples and compare them against the UI, business rules, and data state. Focus on filtering, pagination, aggregation definitions, and related write effects.
+3. **Permission level**: check valid and invalid credentials, user binding, insufficient permissions, and access outside the allowed record scope. Test tenant isolation where applicable.
+
+Prefer isolated environments for write tests: record the initial state → execute → read back primary and related records → inspect audit records → clean up as planned. Where network retries occur, verify idempotency or deduplication according to risk. Explain how partial success is handled across systems.
+
+Match verification depth to the change and its risk. An ordinary change can be delivered after one targeted verification pass; a full-system audit is not the default.
+
+| Evidence | Supported conclusion |
+|---|---|
+| Build passes | The implementation can be built |
+| Tools are listed and help is readable | Discovery and help entry points work |
+| API reports success | This call reported success; the business result still needs checking |
+| Business comparison passes | The checked scenarios follow the business rules |
+| Deployment verification passes | The specified capability works in the target environment |
+
+A complete API list or a successful response does not establish acceptance of all business behavior.
+
+## Deployment and Usage Instructions
+
+Before deployment, retain necessary backups, confirm the target environment, and protect existing configuration and unrelated changes. Deploy the verified candidate as authorized and perform one live check directly related to the change.
+
+The handover should state what was completed, how to connect, how to obtain and revoke personal credentials, which tools are available, the verification level, deployment status, and remaining limitations.
+
+Documentation serves both people and agents. People need clear business and permission explanations; agents need accurate parameters and calling instructions. Update APIs, tool schemas, and documentation together.
+
+## Development Agent Task Template
 
 ```text
 Goal:
@@ -427,25 +401,22 @@ Final output:
 Change summary, usage examples, verification scope, deployment status, limitations, and file locations.
 ```
 
-## 12. 常见遗漏 / Common Omissions
+## Common Omissions
 
-| 中文 | English |
-|---|---|
-| 只按数据库字段做接口，忽略完整业务流程。 | Building interfaces from database fields without tracing the complete business workflow. |
-| 只检查 UI 表面，未追查后台校验及关联动作。 | Inspecting only the UI without tracing backend validation and related processing. |
-| API 与 MCP 各写一套规则，逐渐出现行为差异。 | Duplicating business rules in API and MCP implementations until behavior diverges. |
-| 把 UserID 当作认证，未验证凭据绑定。 | Treating a UserID as authentication without validating credential binding. |
-| 所有人共用管理员 Key，无法隔离权限或追踪操作者。 | Sharing an administrator key, preventing permission isolation and caller attribution. |
-| 只限制工具显示，未限制实际调用和资料范围。 | Restricting tool visibility without enforcing permissions and record scope during execution. |
-| 测试只看成功响应，未读回业务结果和关联状态。 | Checking success responses without reading back business results and related state. |
-| 文档列出能力，却未说明限制和实际验证范围。 | Listing capabilities without stating limitations and actual verification coverage. |
+- Building interfaces from database fields without tracing the complete business workflow.
+- Inspecting only the UI without tracing backend validation and related processing.
+- Duplicating business rules in API and MCP implementations until behavior diverges.
+- Treating a UserID as authentication without validating credential binding.
+- Sharing an administrator key, preventing permission isolation and caller attribution.
+- Restricting tool visibility without enforcing permissions and record scope during execution.
+- Checking success responses without reading back business results and related state.
+- Listing capabilities without stating limitations and actual verification coverage.
 
-**交付标准 / Delivery standard**：Agent 能理解能力、以正确身份调用，并取得符合业务规则的结果。 / The agent understands the capability, calls it under the correct identity, and obtains results consistent with business rules.
+Delivery standard: the assistant understands the capability, invokes it under the correct identity, and obtains a result consistent with business rules.
 
-## 参考资料 / References
+## References
 
-以下链接沿用原文，协议实现时应核对所选版本及客户端支持情况。
-The following references are retained from the source. Check the selected protocol version and client support when implementing an integration.
+These are general specification references. Check the selected version and client support when implementing.
 
 - [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
 - [MCP Authorization — 2026-07-28 reference](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/basic/authorization/index.mdx)
