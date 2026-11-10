@@ -12,11 +12,11 @@
 
 | 目录 | 内容 |
 |---|---|
-| [数字化经验](Factory_Digitalization/README.md) | 九个平级的数字化与 AI 协作经验课题，均为中文在前、英文在后 |
+| [数字化经验](Factory_Digitalization/README.md) | 五篇深入的开发、调试与 AI 协作课题，均为中文在前、英文在后 |
 | [Hardware_WIKI / 中文](Hardware_WIKI/中文/) | 五金材料、产品、开发打样、制造工艺、表面处理、生产管理与质量检验知识 |
 | [Hardware_WIKI / English](Hardware_WIKI/English/) | 五金知识的英文版本 |
 
-阅读：[数字化经验：九个课题](Factory_Digitalization/README.md)。九篇文章按同一层级组织，可按需要独立阅读。
+阅读：[数字化与 AI 实践：五篇深度课题](Factory_Digitalization/README.md)。文章按同一层级组织，结合通用案例展开开发思路、调试过程和交付经验，可按需要独立阅读。
 
 ### 阅读说明
 
@@ -39,11 +39,11 @@ The repository primarily contains Markdown documents, with selected material pre
 
 | Directory | Content |
 |---|---|
-| [Digitalization Experience](Factory_Digitalization/README.md) | Nine peer topics on digitalization and AI collaboration, with Chinese followed by English |
+| [Digitalization Experience](Factory_Digitalization/README.md) | Five in-depth topics on development, debugging, and AI collaboration, with Chinese followed by English |
 | [Hardware_WIKI / 中文](Hardware_WIKI/中文/) | Chinese articles on hardware materials, products, development, manufacturing, finishing, production management, and quality inspection |
 | [Hardware_WIKI / English](Hardware_WIKI/English/) | English versions of the hardware knowledge articles |
 
-Read [Digitalization Experience: Nine Topics](Factory_Digitalization/README.md). The nine articles share the same level and can be read independently.
+Read [Digitalization and AI Practice: Five In-Depth Topics](Factory_Digitalization/README.md). The peer articles develop general cases covering design decisions, debugging investigations, and delivery lessons, and can be read independently.
 
 ### Reading Notes
 
