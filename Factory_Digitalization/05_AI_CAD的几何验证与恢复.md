@@ -2,7 +2,7 @@
 
 ## 中文
 
-本文使用通用管件和模型工程场景，保留建模、评测与恢复中的问题机制，不包含实际产品、图纸、软件实现或内部测量数据。方法适用于不同建模工具与自动化接口。
+本文依据通用测试件的独立 STEP 检查、冷恢复回执和一次生成截面放样修复记录。实际产品身份、图纸及产品尺寸已移除；文中数值仅保留通用测试夹具和运行计数。专业原理与项目观察分开说明，不把单件成功推广为任意模型能力。
 
 ## 1. 一次“成功”可能只发生在其中一层
 
@@ -38,6 +38,22 @@ AI 可以读取工具说明、选择操作顺序、构造参数、解释错误�
 
 执行者应记录实际使用的参数及对象标识。修正后重新测量，不能只因为第二次命令没有报错就宣布几何正确。
 
+### 实际弯管基准：相同体积也能是错误模型
+
+历史评测先在独立进程中生成并写出、读回一个空心四分之一弯管参考件，再加入四个故意错误的 STEP 样本。验证器检查体积、直径、端面法向、壁厚和孔道，而不是只检查文件可读。
+
+| 通用夹具 | 观测体积（约，mm³） | 指定拒绝依据 |
+|---|---:|---|
+| 正确参考件 | 493.480220 | 通过 |
+| 壁厚错误 | 666.198297 | 壁厚不符 |
+| 路径错误 | 542.828242 | 直径/截面位置约束不符 |
+| 端口堵塞 | 506.314338 | 贯通不符 |
+| 扇区旋转错误 | 493.480220 | 端面法向不符，贯通检查也失败 |
+
+表中每个负样本还可能触发其他检查；列出的是该负样本必须触发的判据。旋转错误件与参考件的体积在所列精度下相同，直接否定了“体积对就形状对”的假设。参考检查合格后，实际页面的固定步骤建模及其原始、往返 STEP 都通过相应独立读取。
+
+“独立”指另一个进程从实际导出字节读取，不是换一个 UI 再看同一内存对象；但读取器仍属同一 OCCT 内核家族，不能称为完全独立算法验证。记录也明确没有连续最大误差证书。这是带负样本校准的有限几何证据，不是任意曲面的严格全域证明，更不是自主 Agent 已完成全部题目。
+
 ## 3. 案例二：固定步骤通过，为什么自主建模评测仍失败
 
 固定步骤已经规定操作与参数，主要验证工具和计算路径。自主任务则要求模型从需求出发决定步骤、识别错误、选择补救并判断结束。
@@ -64,6 +80,14 @@ AI 可以读取工具说明、选择操作顺序、构造参数、解释错误�
 
 若检查器尚未修好，应明确其结论不可用，同时继续不依赖它的其他工作。
 
+### 曾出现过什么样的自相矛盾
+
+另一项复合模型的诊断中，实测件与目标参考件体积都约为 1,479.050660 mm³；记录的朝向一致，中心点在内、远点在外。布尔比较却把“缺失体积”算成整个参考件体积，而“多余体积”为零。重新处理朝向后，矛盾没有消失。
+
+这个结果不足以证明两件几何完全相同，却足以否定“检查器给了 FAIL，所以应该立即修改产品”的推理。被推翻的是朝向修正即可解决的假设；具体布尔比较故障在该阶段仍未解决。记录将它保留为参考检查阻塞，没有放宽容差凑通过，也没有把它包装成一个已修复的内核缺陷。
+
+从通用几何原理看，B-rep 描述曲面、边界及拓扑关系；有效性检查会检查子形状、方向和边界一致性，但并不理解设计意图。[OCCT 有效性检查说明](https://www.occt3d.com/dev/doc/refman/html/class_b_rep_check___analyzer.html)因此，一个有效实体仍可能孔径错误；反过来，一个布尔差集异常也不能单凭返回体积判定源模型无效。检查器需要已知正负样本，容差必须对应单位、尺度和测量方法。
+
 ## 5. 案例四：当前页面能用，冷重开却失败
 
 ### 为什么同一会话的成功会掩盖问题
@@ -89,6 +113,14 @@ AI 可以读取工具说明、选择操作顺序、构造参数、解释错误�
 
 实际格式可以组合这些内容。关键是准确描述它保存了什么、恢复依赖什么。采用回退保存时，也要说明损失了哪些编辑能力，不能把能打开等同于完整恢复。
 
+### 已有恢复证据：缺资源与类型错误是两条故障链
+
+一次 300 实体工程的冷恢复失败，定位到两个带哈希名的嵌套 Worker JavaScript 资源在实际站点缺失。处理只补充这两个程序资源，保留站点入口文件哈希不变；随后从真实冷上下文打开原工程，恢复 300 个 Solid，总体积约 57,600 mm³，且 dirty=false。这是局部资源修复与恢复验证，不是整站发布。热页面能用的机制解释是已加载资源可能掩盖依赖缺失；不能据此反推每次热成功都由缓存造成。
+
+后续另一个工程出现不同问题：恢复路径把构造 Face 强制当作 Solid。项目中的面并不一定是缺陷，它可以是后续建模所需的合法中间对象。修复后冷重开原文件，构造面与最终实体均保留，并重新导出 STEP；另有独立读取结果支撑该样本恢复。这里若一律要求所有对象都有正体积、闭合水密，就会把合法构造面误判为失败。
+
+因此恢复核对需要按对象角色判断：实体看有效性、实体数和体积；构造面看面类型、边界和后续依赖；工程整体还要看位置、外观和保存状态。以上两类故障属于同一升级过程中的不同恢复机制，不能把跨会话复测次数当成独立成功案例数量。
+
 ## 6. 远端计算与前端版本怎样一起验收
 
 一个新工具可能需要界面、执行服务和计算组件同时更新。仅更新界面或工具说明，用户仍可能调用到旧能力。
@@ -107,13 +139,27 @@ AI 可以读取工具说明、选择操作顺序、构造参数、解释错误�
 
 在开发层面，分别维护简单工具基准、复合建模样本和 AI 自主任务。它们覆盖不同能力。按需要选择检查，保留失败样本和明确范围，比增加一张漂亮截图更能支持后续改进。
 
+## 9. 放样失败：修正截面对应关系，而不是改变设计凑结果
+
+一次复杂主体建模使用同族生成式多边截面，各截面的采样角度和顶点顺序有确定对应关系。原调用仍让内核自动重排、分割截面，构建返回 `ProfilesInconsistent`。如果错误处理接着读取未完成的 Shape，原始状态还可能被后续异常遮蔽。
+
+先把“构建状态”与“读取结果”分开，失败时保留内核状态、实际边数、对应方式和阶段耗时，再比较原参数与重试参数。修复仅在确认截面同族、采样数一致且实际边数符合预期时保留生成式顶点对应；其他轮廓继续走原兼容路径。没有减少截面、改变位置或放宽几何有效性来换成功。
+
+通用原理上，OCCT 的截面兼容处理会计算 wire 起点与方向，并调整边数以避免扭曲。它是有用途的算法，不应全局关闭；当应用已经提供可靠对应关系时，再次推断可能与该关系冲突。[OCCT 放样兼容处理说明](https://occt3d.com/dev/doc/refman/html/class_b_rep_offset_a_p_i___thru_sections.html)本例确认的是这类受约束输入上的调用策略问题，不是所有放样失败都来自内核重排。
+
+实际页面回执多次取得一个实体，保留 B-rep 有效性和正体积检查；原参数与位置逐项一致。两条体积测量路径因计算选项不同给出略不同结果，记录没有把它们当成同一精度的重复证明。局部厚度和点内外测试也有结果，但完整正交视图、阶段保存及整模型门禁没有闭合。
+
+过程中一次测试还被同时升级执行服务中断，这属于环境干扰，不能记作几何失败。后续限定发布验证了简单长方体的真实建模、4 mm 测厚、截图和保存链路，并发布累计修复；没有重跑完整复杂模型。因此准确结论是“该放样路径修复并随包发布，限定链路验收通过”，不是“完整复杂模型已完成”。
+
+该案例把几何判断的几层分开了：**内核是否构建、实体是否有效、尺寸是否满足、模型是否完整、文件是否能恢复**。每层都需要自己的证据，前一层的成功不能替后一层作答。
+
 ---
 
 # AI CAD Geometry Validation and Recovery
 
 ## English
 
-These generic tube and project scenarios preserve modeling, evaluation, and recovery mechanisms without real products, drawings, implementation details, or internal measurements. They apply across modeling tools and automation interfaces.
+This article draws on independent STEP checks of generic fixtures, cold-recovery receipts, and a generated-section loft repair. Product identities, drawings, and product dimensions are omitted. Numbers are limited to generic test fixtures and runtime counts. General geometry principles are separated from project observations; one successful part does not establish arbitrary modeling capability.
 
 ## 1. Success can occur at only one layer
 
@@ -145,6 +191,22 @@ AI can read tool documentation, choose operations, construct parameters, interpr
 
 Record the parameters actually executed and resulting object identities. Measure again after correction rather than treating absence of an error as proof of correctness.
 
+### A real bend benchmark: equal volume can describe the wrong model
+
+The historical evaluator first generated, exported, and read back a hollow quarter-bend reference in a separate process, then tested four deliberately wrong STEP fixtures. It checked volume, diameters, end normals, wall thickness, and passage continuity rather than file readability alone.
+
+| Generic fixture | Approximate volume, mm³ | Required rejection criterion |
+|---|---:|---|
+| Correct reference | 493.480220 | Accepted |
+| Wrong wall | 666.198297 | Wall thickness |
+| Wrong path | 542.828242 | Diameter/section-position constraints |
+| Plugged end | 506.314338 | Passage continuity |
+| Rotated sector | 493.480220 | End normals; continuity also failed |
+
+Each negative could fail additional checks; the table identifies its required rejection criterion. The rotated fixture matched the reference volume at the displayed precision, directly disproving volume as a sufficient shape test. After reference qualification, fixed-step modeling in the actual page and both original and round-trip STEP exports passed corresponding independent reading.
+
+Independent means reading actual exported bytes in another process, rather than viewing the same in-memory object through a different UI. The reader still belonged to the OCCT kernel family, so this was not fully independent algorithmic verification. Records explicitly withheld continuous maximum-error certification. This was bounded geometry evidence calibrated with negative fixtures, not a global proof for arbitrary surfaces or full autonomous-Agent acceptance.
+
 ## 3. Case two: scripted success but failed autonomous evaluation
 
 Fixed steps prescribe operations and parameters, primarily checking tools and computation. Autonomous modeling also checks planning, error recognition, recovery, and the decision to finish.
@@ -164,6 +226,14 @@ Check the model and file version, units, tolerances, coordinates, and selected o
 Independent reading or measurement can reduce shared assumptions between production code and its checker. Do not loosen tolerances or remove failure conditions merely to obtain passing results.
 
 State when evaluation is unavailable and continue unrelated work that does not depend on it.
+
+### What the contradictory result looked like
+
+For another composite-model diagnostic, the actual and target reference volumes were both approximately 1,479.050660 mm³. Their recorded orientations matched; the center point was inside and a distant point outside. Boolean comparison nevertheless reported the entire target volume as missing and zero extra volume. Reprocessing orientation did not change the contradiction.
+
+This did not prove complete geometric equivalence, but it invalidated the inference that a checker FAIL immediately justified changing the product. The orientation-only remedy had failed; the Boolean-comparison defect remained unresolved at that stage. Records retained a reference-check blocker instead of loosening tolerances or presenting a repaired kernel defect.
+
+As a general principle, B-rep describes surfaces, boundaries, and topology. Validity checks examine subshapes, orientation, and boundary consistency, not design intent. [OCCT validity-check documentation](https://www.occt3d.com/dev/doc/refman/html/class_b_rep_check___analyzer.html) A valid solid can therefore have the wrong bore, while an anomalous Boolean difference does not by its returned volume alone establish invalid source geometry. Checkers need known positive and negative fixtures, and tolerances must match units, scale, and measurement method.
 
 ## 5. Case four: a live page works but a cold reopen fails
 
@@ -190,6 +260,14 @@ Check file contents, external resources, packaged dependencies, and recovery err
 
 Formats may combine these approaches. Explain saved content and recovery dependencies accurately. A fallback save should disclose lost editing capabilities; opening a file is not necessarily complete restoration.
 
+### Recovery evidence: missing resources and wrong shape types
+
+A failed cold restore of a 300-solid project was traced to two missing, hash-named nested Worker JavaScript resources at the actual site. Only those resources were added, with the entry-file hash unchanged. Reopening the original project in a genuinely cold context then restored 300 solids, approximately 57,600 mm³ total volume, and dirty=false. This was a local resource repair and recovery check, not a whole-site deployment. Already-loaded resources can explain why a warm page hides a missing dependency; that does not prove caching caused every warm success.
+
+A later project exposed a different defect: recovery forced a construction Face into a Solid. A face can be a legitimate intermediate modeling object. After correction, reopening the original file retained both the construction face and final solid and allowed another STEP export, with independent readback supporting that sample. Requiring every object to have positive volume and a watertight boundary would incorrectly reject the valid construction face.
+
+Recovery checks therefore depend on object role: solids need validity, count, and volume checks; construction faces need type, boundary, and dependency checks; the project also needs position, appearance, and save-state checks. These were different recovery mechanisms within the same upgrade, not separate success cases for every retest across conversations.
+
 ## 6. Verify coupled runtime components
 
 A tool may require matching interface, executor, and computation components. Updating only its interface or description can leave users on old behavior.
@@ -207,3 +285,17 @@ Read actual state before resuming and determine whether the previous operation t
 Before execution, state units, input provenance, critical dimensions, tolerances, and expected artifacts. Afterward, record actual parameters, measurements, save location, readback, and unresolved constraints.
 
 Maintain separate simple tool baselines, compound modeling samples, and autonomous AI tasks. They test different abilities. Relevant checks, preserved failing samples, and explicit scope support improvement more reliably than a screenshot alone.
+
+## 9. Loft Failure: Repair Correspondence Without Changing the Design
+
+A complex-body task used polygonal sections generated from the same profile family, with defined sampling angles and vertex order. The original call still allowed the kernel to reorder and split sections, and construction returned `ProfilesInconsistent`. Reading Shape after an unfinished build could further obscure the original status with a secondary exception.
+
+The investigation separated build status from result access, retaining kernel status, actual edge counts, correspondence mode, and stage timing on failure. It also compared original and retry parameters. The repair preserved generated vertex correspondence only when profile family, sample count, and actual edge count satisfied the expected conditions; other profiles retained the original compatibility path. It did not reduce sections, move geometry, or weaken validity checks to obtain success.
+
+As a general principle, OCCT's compatibility processing computes wire origins and orientations and adjusts edge counts to avoid twisting. It is useful and should not be disabled globally. Where the application already supplies reliable correspondence, another inference can conflict with it. [OCCT loft compatibility documentation](https://occt3d.com/dev/doc/refman/html/class_b_rep_offset_a_p_i___thru_sections.html) The observed defect concerned the calling strategy for constrained inputs, not every possible loft failure.
+
+Actual page receipts repeatedly produced one solid while retaining B-rep validity and positive-volume checks. Original parameters and placement matched field by field. Two volume-measurement paths used different computation options and returned slightly different values; records did not present them as equivalent-precision confirmation. Local thickness and inside/outside tests produced evidence, but complete orthographic views, stage saving, and whole-model gates remained open.
+
+One attempt was interrupted by a concurrent executor upgrade, an environmental disturbance rather than a geometry failure. A later scoped release verified real creation of a simple box, 4 mm thickness, screenshot, and saving, and shipped the accumulated fixes. It did not rerun the full complex model. The defensible conclusion is that the loft path was repaired and shipped with a passing limited execution chain, not that the entire complex model was completed.
+
+This separates **successful construction, valid solids, correct dimensions, complete models, and recoverable files**. Each needs its own evidence; success at one layer cannot answer for the next.
