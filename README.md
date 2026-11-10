@@ -12,13 +12,11 @@
 
 | 目录 | 内容 |
 |---|---|
-| [数字化经验](Factory_Digitalization/README.md) | 通用 API/MCP 指南与八个 AI 协作课题，均为中文在前、英文在后 |
+| [数字化经验](Factory_Digitalization/README.md) | 九个平级的数字化与 AI 协作经验课题，均为中文在前、英文在后 |
 | [Hardware_WIKI / 中文](Hardware_WIKI/中文/) | 五金材料、产品、开发打样、制造工艺、表面处理、生产管理与质量检验知识 |
 | [Hardware_WIKI / English](Hardware_WIKI/English/) | 五金知识的英文版本 |
 
-推荐先读：[通用 API 与 MCP 开发流程指南（中英双语）](Factory_Digitalization/API_and_MCP_Development_Guide.md)。文中介绍从业务梳理、接口设计到身份权限、验证及交付的完整流程，并提供开发任务模板。
-
-另见：[AI 参与业务系统改造：八个通用课题](Factory_Digitalization/AI_Practice_Topics/README.md)，各篇均为完整中文在前、英文在后。
+阅读：[数字化经验：九个课题](Factory_Digitalization/README.md)。九篇文章按同一层级组织，可按需要独立阅读。
 
 ### 阅读说明
 
@@ -41,13 +39,11 @@ The repository primarily contains Markdown documents, with selected material pre
 
 | Directory | Content |
 |---|---|
-| [Digitalization Experience](Factory_Digitalization/README.md) | A general API/MCP guide and eight AI collaboration topics, with Chinese followed by English |
+| [Digitalization Experience](Factory_Digitalization/README.md) | Nine peer topics on digitalization and AI collaboration, with Chinese followed by English |
 | [Hardware_WIKI / 中文](Hardware_WIKI/中文/) | Chinese articles on hardware materials, products, development, manufacturing, finishing, production management, and quality inspection |
 | [Hardware_WIKI / English](Hardware_WIKI/English/) | English versions of the hardware knowledge articles |
 
-Start with the [API and MCP Development Guide (Chinese and English)](Factory_Digitalization/API_and_MCP_Development_Guide.md). It covers business analysis, interface design, identity and permissions, verification, and delivery, with a reusable development task template.
-
-Also read [Eight General Topics on AI-Assisted Business Systems](Factory_Digitalization/AI_Practice_Topics/README.md). Each article presents its complete Chinese text before its English text.
+Read [Digitalization Experience: Nine Topics](Factory_Digitalization/README.md). The nine articles share the same level and can be read independently.
 
 ### Reading Notes
 
